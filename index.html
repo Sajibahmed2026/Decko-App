@@ -1,0 +1,496 @@
+
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0f0f0f">
+<title>Dekho</title>
+
+<style>
+:root {
+  --bg:#0f0f0f;
+  --card:#1c1c1c;
+  --text:#fff;
+  --muted:#bdbdbd;
+  --header:#080808;
+  --line:#333;
+  --accent:#ff2424;
+}
+body.light {
+  --bg:#f5f5f5;
+  --card:#fff;
+  --text:#111;
+  --muted:#555;
+  --header:#fff;
+  --line:#ddd;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,"Noto Sans Bengali",sans-serif;
+}
+button,input {font:inherit}
+button {cursor:pointer}
+
+#splashScreen {
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:#0f0f0f;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  color:white;
+}
+.splash-logo {
+  font-size:48px;
+  font-weight:900;
+  color:#ff2424;
+  letter-spacing:1px;
+}
+#splashScreen p {color:#bbb}
+
+header {
+  position:sticky;
+  top:0;
+  background:var(--header);
+  padding:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  z-index:20;
+  border-bottom:1px solid var(--line);
+}
+.logo {
+  font-size:21px;
+  font-weight:800;
+  color:var(--accent);
+  white-space:nowrap;
+}
+#search {
+  min-width:0;
+  flex:1;
+  padding:11px 13px;
+  border-radius:24px;
+  border:1px solid var(--line);
+  background:var(--card);
+  color:var(--text);
+  outline:none;
+}
+.btn {
+  border:0;
+  border-radius:20px;
+  padding:10px 14px;
+  background:var(--accent);
+  color:white;
+  font-weight:600;
+}
+.secondary {background:#333;color:white}
+
+.feed {
+  padding:12px 12px 90px;
+  max-width:900px;
+  margin:auto;
+}
+.status {
+  padding:12px;
+  border:1px solid var(--line);
+  background:var(--card);
+  border-radius:12px;
+  margin:10px 0;
+  color:var(--muted);
+  line-height:1.6;
+}
+.page {
+  display:none;
+  padding:16px 14px 90px;
+  max-width:900px;
+  margin:auto;
+}
+.page h2 {margin-top:5px}
+.setting-item {
+  background:var(--card);
+  border:1px solid var(--line);
+  padding:14px;
+  border-radius:12px;
+  margin:10px 0;
+}
+.setting-item label {
+  display:block;
+  margin-bottom:8px;
+  font-weight:600;
+}
+.setting-item input {
+  width:100%;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:var(--bg);
+  color:var(--text);
+}
+.switch-row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  cursor:pointer;
+}
+.switch {
+  width:46px;
+  height:26px;
+  background:#444;
+  border-radius:20px;
+  position:relative;
+  flex:none;
+}
+.switch:after {
+  content:"";
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:20px;
+  height:20px;
+  background:#fff;
+  border-radius:50%;
+  transition:.2s;
+}
+.switch.on {background:var(--accent)}
+.switch.on:after {left:23px}
+
+.lang-btn {
+  padding:7px 12px;
+  border-radius:20px;
+  border:1px solid var(--line);
+  background:var(--card);
+  color:var(--text);
+}
+.lang-btn.active {
+  background:var(--accent);
+  color:#fff;
+  border-color:var(--accent);
+}
+.small {
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.6;
+}
+.nav {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:var(--header);
+  border-top:1px solid var(--line);
+  display:flex;
+  justify-content:space-around;
+  padding:8px 5px calc(8px + env(safe-area-inset-bottom));
+  z-index:50;
+}
+.nav button {
+  border:0;
+  background:none;
+  color:var(--muted);
+  padding:5px 20px;
+  font-size:14px;
+}
+.nav button.active {
+  color:var(--accent);
+  font-weight:bold;
+}
+@media(min-width:650px) {
+  .feed {max-width:900px}
+}
+</style>
+</head>
+
+<body>
+
+<!-- 3-second splash screen -->
+<div id="splashScreen">
+  <div class="splash-logo">Dekho</div>
+  <p>আপনার পছন্দের ভিডিও খুঁজুন</p>
+</div>
+
+<!-- Header and search -->
+<header>
+  <div class="logo">Dekho</div>
+  <input
+    id="search"
+    type="search"
+    placeholder="গান, নাটক বা ভিডিও খুঁজুন..."
+    autocomplete="off">
+  <button class="btn" id="searchBtn">সার্চ</button>
+</header>
+
+<!-- Home page -->
+<main id="homePage" class="feed">
+  <div class="status" id="intro">
+    গান, নাটক, খবর বা যেকোনো ভিডিও খুঁজুন।
+    সার্চ করলে সরাসরি YouTube-এর সার্চ পেজ খুলবে।
+  </div>
+
+  <div class="status">
+    YouTube সার্চ করতে কোনো API Key লাগবে না।
+    সার্চ বক্সে ভিডিওর নাম লিখে সার্চ চাপুন।
+  </div>
+
+  <div class="status">
+    <strong>দ্রুত সার্চ করুন</strong>
+    <p>
+      <button class="btn quick" data-query="বাংলা নাটক">বাংলা নাটক</button>
+      <button class="btn quick" data-query="বাংলা গান">বাংলা গান</button>
+      <button class="btn quick" data-query="বাংলা খবর">বাংলা খবর</button>
+      <button class="btn quick" data-query="বাংলা সিনেমা">বাংলা সিনেমা</button>
+    </p>
+    <button class="btn secondary" id="openYouTube">
+      YouTube খুলুন
+    </button>
+  </div>
+</main>
+
+<!-- Profile and settings -->
+<section id="profilePage" class="page">
+  <h2 id="profileHeading">প্রোফাইল ও সেটিংস</h2>
+
+  <div class="status">
+    এটি স্থানীয় প্রোফাইল সেটিংস। এখানে Gmail লগইন নেই।
+    YouTube সার্চের জন্য API Key প্রয়োজন হবে না।
+  </div>
+
+  <div class="setting-item switch-row" id="themeRow" role="button" tabindex="0">
+    <div>
+      <strong id="themeLabel">ডার্ক / লাইট মোড</strong>
+      <div class="small">অ্যাপের রং পরিবর্তন করুন</div>
+    </div>
+    <div class="switch on" id="themeSwitch"></div>
+  </div>
+
+  <div class="setting-item">
+    <label>ভাষা / Language</label>
+    <button class="lang-btn active" id="btn-bn">বাংলা</button>
+    <button class="lang-btn" id="btn-en">English</button>
+  </div>
+
+  <div class="setting-item">
+    <strong>অনুমোদিত ডাউনলোড লিংক</strong>
+    <p class="small">
+      নিজের অথবা ভিডিওর মালিকের অনুমতি থাকা ভিডিওর ডাউনলোড লিংক দিন।
+      YouTube-এর সব ভিডিও সরাসরি ফাইল হিসেবে ডাউনলোড করা যায় না।
+    </p>
+
+    <label for="downloadUrl">ডাউনলোড লিংক</label>
+    <input
+      id="downloadUrl"
+      type="url"
+      placeholder="https://example.com/video.mp4">
+
+    <button class="btn" id="saveLink" style="margin-top:10px">
+      লিংক সংরক্ষণ
+    </button>
+
+    <button class="btn secondary" id="openDownloadLink" style="margin-top:10px">
+      ডাউনলোড লিংক খুলুন
+    </button>
+
+    <div class="small" id="linkStatus" style="margin-top:8px"></div>
+  </div>
+</section>
+
+<!-- Bottom navigation -->
+<nav class="nav">
+  <button id="navHome" class="active">
+    🏠<br><span id="homeNavText">হোম</span>
+  </button>
+  <button id="navProfile">
+    👤<br><span id="profileNavText">প্রোফাইল</span>
+  </button>
+</nav>
+
+<script>
+"use strict";
+
+const $ = id => document.getElementById(id);
+
+let currentLang = localStorage.getItem("dekho_lang") || "bn";
+let savedLink = localStorage.getItem("dekho_download_link") || "";
+
+const words = {
+  bn: {
+    search: "সার্চ",
+    placeholder: "গান, নাটক বা ভিডিও খুঁজুন...",
+    intro: "গান, নাটক, খবর বা যেকোনো ভিডিও খুঁজুন। সার্চ করলে সরাসরি YouTube-এর সার্চ পেজ খুলবে।",
+    profile: "প্রোফাইল ও সেটিংস",
+    theme: "ডার্ক / লাইট মোড",
+    home: "হোম",
+    profileNav: "প্রোফাইল"
+  },
+  en: {
+    search: "Search",
+    placeholder: "Search songs, dramas or videos...",
+    intro: "Search for videos. Search opens YouTube results directly.",
+    profile: "Profile & Settings",
+    theme: "Dark / Light Mode",
+    home: "Home",
+    profileNav: "Profile"
+  }
+};
+
+function openYouTubeSearch(query) {
+  const q = query.trim();
+  if (!q) {
+    $("search").focus();
+    return;
+  }
+
+  const url =
+    "https://www.youtube.com/results?search_query=" +
+    encodeURIComponent(q);
+
+  window.location.href = url;
+}
+
+function doSearch() {
+  openYouTubeSearch($("search").value);
+}
+
+function setLanguage(lang) {
+  currentLang = lang;
+  localStorage.setItem("dekho_lang", lang);
+
+  const w = words[lang];
+
+  $("searchBtn").textContent = w.search;
+  $("search").placeholder = w.placeholder;
+  $("intro").textContent = w.intro;
+  $("profileHeading").textContent = w.profile;
+  $("themeLabel").textContent = w.theme;
+  $("homeNavText").textContent = w.home;
+  $("profileNavText").textContent = w.profileNav;
+
+  $("btn-bn").classList.toggle("active", lang === "bn");
+  $("btn-en").classList.toggle("active", lang === "en");
+}
+
+function showPage(page) {
+  const isHome = page === "home";
+
+  $("homePage").style.display = isHome ? "block" : "none";
+  $("profilePage").style.display = isHome ? "none" : "block";
+
+  $("navHome").classList.toggle("active", isHome);
+  $("navProfile").classList.toggle("active", !isHome);
+}
+
+function toggleTheme() {
+  document.body.classList.toggle("light");
+
+  const isLight = document.body.classList.contains("light");
+
+  $("themeSwitch").classList.toggle("on", !isLight);
+
+  localStorage.setItem(
+    "dekho_theme",
+    isLight ? "light" : "dark"
+  );
+}
+
+function safeHttpUrl(value) {
+  try {
+    const url = new URL(value);
+    if (url.protocol === "https:" || url.protocol === "http:") {
+      return url.href;
+    }
+  } catch (e) {}
+
+  return null;
+}
+
+function saveDownloadLink() {
+  const url = safeHttpUrl($("downloadUrl").value.trim());
+
+  if (!url) {
+    alert("সঠিক http:// অথবা https:// লিংক দিন।");
+    return;
+  }
+
+  savedLink = url;
+  localStorage.setItem("dekho_download_link", savedLink);
+  $("linkStatus").textContent = "ডাউনলোড লিংক সংরক্ষণ হয়েছে।";
+}
+
+function openDownloadLink() {
+  if (!savedLink) {
+    alert("আগে প্রোফাইলে একটি অনুমোদিত ডাউনলোড লিংক সংরক্ষণ করুন।");
+    showPage("profile");
+    return;
+  }
+
+  window.open(savedLink, "_blank", "noopener");
+}
+
+$("searchBtn").addEventListener("click", doSearch);
+
+$("search").addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    doSearch();
+  }
+});
+
+document.querySelectorAll(".quick").forEach(button => {
+  button.addEventListener("click", () => {
+    openYouTubeSearch(button.dataset.query);
+  });
+});
+
+$("openYouTube").addEventListener("click", () => {
+  window.location.href = "https://www.youtube.com/";
+});
+
+$("navHome").addEventListener("click", () => showPage("home"));
+$("navProfile").addEventListener("click", () => showPage("profile"));
+
+$("themeRow").addEventListener("click", toggleTheme);
+
+$("themeRow").addEventListener("keydown", event => {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    toggleTheme();
+  }
+});
+
+$("btn-bn").addEventListener("click", () => setLanguage("bn"));
+$("btn-en").addEventListener("click", () => setLanguage("en"));
+
+$("saveLink").addEventListener("click", saveDownloadLink);
+$("openDownloadLink").addEventListener("click", openDownloadLink);
+
+$("downloadUrl").value = savedLink;
+
+if (savedLink) {
+  $("linkStatus").textContent = "আগে সংরক্ষিত লিংক পাওয়া গেছে।";
+}
+
+if (localStorage.getItem("dekho_theme") === "light") {
+  document.body.classList.add("light");
+}
+
+$("themeSwitch").classList.toggle(
+  "on",
+  !document.body.classList.contains("light")
+);
+
+setLanguage(currentLang);
+showPage("home");
+
+// Hide splash screen after 3 seconds
+setTimeout(() => {
+  $("splashScreen").style.display = "none";
+}, 3000);
+</script>
+
+</body>
+</html>
